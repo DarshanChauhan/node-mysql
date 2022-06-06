@@ -13,7 +13,7 @@ const getAllUser = async (req, res) => {
   }
 };
 // email sent
-function sendEmail() {
+function sendEmail(email) {
   var mail = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -23,7 +23,7 @@ function sendEmail() {
   });
   var mailOptions = {
     from: "nodemailer7866@gmail.com",
-    to: "jeet.pubg123456@gmail.com",
+    to: email,
     subject: "Darshan Chauhan",
     text: "That was easy!",
   };
@@ -56,7 +56,8 @@ const insertUser = async (req, res) => {
     });
   }
   res.json({ message: "Email sent" });
-  sendEmail();
+
+  sendEmail(req.body.email);
 };
 module.exports = {
   getAllUser,

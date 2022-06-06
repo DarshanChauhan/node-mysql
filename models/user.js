@@ -12,7 +12,11 @@ module.exports = (sequelize, DataTypes) => {
       username: { type: Sequelize.STRING },
       email: { type: Sequelize.STRING },
       password: { type: Sequelize.STRING },
-      emailVerified: { type: Sequelize.STRING },
+      emailVerified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       createdAt: { type: Sequelize.DATE },
       updatedAt: { type: Sequelize.DATE },
     },
