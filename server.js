@@ -1,10 +1,13 @@
 const express = require("express");
 const app = express();
+const route = require("./routes/routes");
+
 const bodyParser = require("body-parser");
 const db = require("./models/index");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(route);
 
 //PORT
 
