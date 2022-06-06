@@ -1,6 +1,7 @@
 const db = require("../models");
 const User = db.user;
 var nodemailer = require("nodemailer");
+const { encrypt } = require("../encryption/crypto");
 
 const getAllUser = async (req, res) => {
   let user;
@@ -13,7 +14,8 @@ const getAllUser = async (req, res) => {
   }
 };
 // email sent
-function sendEmail(email) {
+function sendEmail(email, id) {
+  // const encrptId = encrypt("asd", id);
   var mail = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -25,7 +27,7 @@ function sendEmail(email) {
     from: "nodemailer7866@gmail.com",
     to: email,
     subject: "Darshan Chauhan",
-    text: "That was easy!",
+    html: `<a href='http://localhost:4000/user/verify-email/${id}'> Click Here And verify  Please :)</a>`,
   };
   mail.sendMail(mailOptions, function (error, info) {
     if (error) {
@@ -44,22 +46,38 @@ const insertUser = async (req, res) => {
       email: email,
       password: password,
       emailVerified: emailVerified,
-    }).then(function (user) {
-      if (user) {
-      } else {
-        res.status(400).send("Error in insert new mail ");
-      }
     });
+    if (user) {
+      sendEmail(req.body.email, user.id);
+    }
   } catch (error) {
     res.status(500).send({
       message: error.message || "Some error occurred while adding cart",
     });
   }
   res.json({ message: "Email sent" });
-
-  sendEmail(req.body.email);
 };
+
+const verifyEmail = async (req, res) => {
+  const findUser = await User.findOne({ where: { id: req.params.id } });
+  console.log(findUser);
+  if (findUser) {
+    User.update(
+      {
+        emailVerified: true,
+      },
+      {
+        where: { id: req.params.id },
+      }
+    );
+  } else {
+    res.status(404).json({ message: "User Not Found" });
+  }
+  res.json({ message: "success" });
+};
+
 module.exports = {
   getAllUser,
   insertUser,
+  verifyEmail,
 };

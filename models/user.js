@@ -1,4 +1,4 @@
-const Sequelize = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
@@ -10,7 +10,20 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
       },
       username: { type: Sequelize.STRING },
-      email: { type: Sequelize.STRING },
+      email: {
+        type: Sequelize.STRING,
+        validate: {
+          notEmpty: {
+            args: true,
+            msg: "Email-id required",
+          },
+          isEmail: {
+            args: true,
+            msg: "Valid email-id required",
+          },
+        },
+        unique: { msg: "Email address already in use!" },
+      },
       password: { type: Sequelize.STRING },
       emailVerified: {
         type: Sequelize.BOOLEAN,
