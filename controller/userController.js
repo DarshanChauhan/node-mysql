@@ -8,7 +8,7 @@ const saltRounds = 10;
 // email sent
 
 var encrptId;
-function sendEmail(email, id) {
+function sendEmail(email, id, username) {
   encrptId = encrypt(`${id}`);
   var mail = nodemailer.createTransport({
     service: "gmail",
@@ -17,12 +17,15 @@ function sendEmail(email, id) {
       pass: "rhndojhbjcnuvzis",
     },
   });
-  console.log(encrptId.iv);
+  // console.log(encrptId.iv);
   var mailOptions = {
     from: "noreplyproexelancers123@gmail.com",
     to: email,
     subject: "Darshan Chauhan",
-    html: `<a href='http://localhost:4000/user/verify-email/${encrptId.iv}'> Click Here And verify  Please 😀</a>`,
+    html: `<h1>Email Confirmation</h1>
+    <h2>Hello ${username}</h2>
+    <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
+    <a href='http://localhost:4000/user/verify-email/${encrptId.iv}'> Click Here  😀</a>`,
   };
   mail.sendMail(mailOptions, function (error, info) {
     if (error) {
@@ -45,8 +48,11 @@ const insertUser = async (req, res) => {
       emailVerified: emailVerified,
     });
     if (user) {
-      sendEmail(req.body.email, user.id);
-      res.json({ message: "Email sent" });
+      sendEmail(req.body.email, user.id, user.username);
+      res.json({
+        message:
+          "'Thanks for registering✅ Please confirm your email! 📩 We have sent a link!'",
+      });
     }
   } catch (error) {
     res.status(500).send({
@@ -59,7 +65,7 @@ const insertUser = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
   let respoonse = await decrypt(encrptId);
-  console.log(respoonse);
+  // console.log(respoonse);
   const findUser = await User.findOne({ where: { id: respoonse } });
 
   if (findUser) {
@@ -96,8 +102,18 @@ const userLogin = async (req, res) => {
   }
 };
 
+const resendVerificationLink = async (req, res) => {
+  const email = req.body.email;
+  const findIdByEmail = await User.findOne({ where: { email: email } });
+  sendEmail(findIdByEmail.email, findIdByEmail.id, findIdByEmail.username);
+  res.json({
+    message: "successFully resend link please check your Email Inbox",
+  });
+};
+
 module.exports = {
   insertUser,
   verifyEmail,
   userLogin,
+  resendVerificationLink,
 };

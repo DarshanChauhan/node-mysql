@@ -5,6 +5,7 @@ const {
   insertUser,
   verifyEmail,
   userLogin,
+  resendVerificationLink,
 } = require("../controller/userController");
 
 // post API
@@ -14,5 +15,7 @@ route.post("/sign-up", insertUser);
 route.get("/verify-email/:encrptId", verifyEmail);
 
 route.post("/login", userLogin);
+
+route.post("/re-send-emailverification", resendVerificationLink);
 
 module.exports = route;
