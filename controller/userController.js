@@ -1,33 +1,25 @@
 const db = require("../models");
 const User = db.user;
 var nodemailer = require("nodemailer");
-const { encrypt } = require("../encryption/crypto");
+const { encrypt, decrypt } = require("../encryption/crypto");
 
-const getAllUser = async (req, res) => {
-  let user;
-  try {
-    user = await User.findAll({});
-  } catch (error) {
-    res.status(500).send({
-      message: error.message || "Some error occurred while retrieving Brands.",
-    });
-  }
-};
 // email sent
+var encrptId;
 function sendEmail(email, id) {
-  // const encrptId = encrypt("asd", id);
+  encrptId = encrypt(`${id}`);
   var mail = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "nodemailer7866@gmail.com",
-      pass: "fzukiufzydrpvzyl",
+      user: "noreplyproexelancers123@gmail.com",
+      pass: "rhndojhbjcnuvzis",
     },
   });
+  console.log(encrptId.iv);
   var mailOptions = {
-    from: "nodemailer7866@gmail.com",
+    from: "noreplyproexelancers123@gmail.com",
     to: email,
     subject: "Darshan Chauhan",
-    html: `<a href='http://localhost:4000/user/verify-email/${id}'> Click Here And verify  Please :)</a>`,
+    html: `<a href='http://localhost:4000/user/verify-email/${encrptId.iv}'> Click Here And verify  Please 😀</a>`,
   };
   mail.sendMail(mailOptions, function (error, info) {
     if (error) {
@@ -40,6 +32,7 @@ function sendEmail(email, id) {
 const insertUser = async (req, res) => {
   let user;
   try {
+    console.log(await User.getAllUser());
     const { username, email, password, emailVerified } = req.body;
     user = await User.create({
       username: username,
@@ -49,35 +42,36 @@ const insertUser = async (req, res) => {
     });
     if (user) {
       sendEmail(req.body.email, user.id);
+      res.json({ message: "Email sent" });
     }
   } catch (error) {
     res.status(500).send({
-      message: error.message || "Some error occurred while adding cart",
+      message: error.message || "Some error occurred while add Data ",
     });
   }
-  res.json({ message: "Email sent" });
 };
 
 const verifyEmail = async (req, res) => {
-  const findUser = await User.findOne({ where: { id: req.params.id } });
-  console.log(findUser);
+  let respoonse = await decrypt(encrptId);
+  console.log(respoonse);
+  const findUser = await User.findOne({ where: { id: respoonse } });
+
   if (findUser) {
     User.update(
       {
         emailVerified: true,
       },
       {
-        where: { id: req.params.id },
+        where: { id: respoonse },
       }
     );
+    res.json({ message: "success" });
   } else {
     res.status(404).json({ message: "User Not Found" });
   }
-  res.json({ message: "success" });
 };
 
 module.exports = {
-  getAllUser,
   insertUser,
   verifyEmail,
 };

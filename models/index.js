@@ -25,7 +25,7 @@ db.sequelize = sequelize;
 
 db.user = require("./user")(sequelize, DataTypes);
 
-db.sequelize.sync({ force: true }).then(() => {
+db.sequelize.sync({ alter: true }).then(() => {
   console.log("Drop and re-aync db");
 });
 

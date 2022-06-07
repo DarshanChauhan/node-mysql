@@ -1,11 +1,7 @@
 const express = require("express");
 const route = express.Router();
 
-const {
-  getAllUser,
-  insertUser,
-  verifyEmail,
-} = require("../controller/userController");
+const { insertUser, verifyEmail } = require("../controller/userController");
 
 // post API
 route.post("/sign-up", insertUser);

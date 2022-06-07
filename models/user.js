@@ -22,7 +22,8 @@ module.exports = (sequelize, DataTypes) => {
             msg: "Valid email-id required",
           },
         },
-        unique: { msg: "Email address already in use!" },
+
+        unique: { args: true, msg: "Email address already in use!" },
       },
       password: { type: Sequelize.STRING },
       emailVerified: {
@@ -35,5 +36,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     { underscored: true }
   );
+  User.getAllUser = async () => {
+    let users = await User.findAll({});
+    return users;
+  };
   return User;
 };
