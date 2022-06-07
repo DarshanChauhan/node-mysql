@@ -2,8 +2,11 @@ const db = require("../models");
 const User = db.user;
 var nodemailer = require("nodemailer");
 const { encrypt, decrypt } = require("../encryption/crypto");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 // email sent
+
 var encrptId;
 function sendEmail(email, id) {
   encrptId = encrypt(`${id}`);
@@ -32,12 +35,13 @@ function sendEmail(email, id) {
 const insertUser = async (req, res) => {
   let user;
   try {
-    console.log(await User.getAllUser());
+    // console.log(await User.getAllUser());
     const { username, email, password, emailVerified } = req.body;
+    let hashPassword = bcrypt.hashSync(password, saltRounds);
     user = await User.create({
       username: username,
       email: email,
-      password: password,
+      password: hashPassword,
       emailVerified: emailVerified,
     });
     if (user) {
@@ -50,6 +54,8 @@ const insertUser = async (req, res) => {
     });
   }
 };
+
+// email verify
 
 const verifyEmail = async (req, res) => {
   let respoonse = await decrypt(encrptId);
@@ -71,7 +77,27 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+// log in
+const userLogin = async (req, res) => {
+  const body = req.body;
+  const user = await User.findOne({ where: { email: body.email } });
+  if (user) {
+    const validPassword = await bcrypt.compare(body.password, user.password);
+
+    if (!user.emailVerified) {
+      res.status(422).json({ error: " Email not verify " });
+    } else if (validPassword) {
+      res.status(200).json({ message: "Login SuccessFully" });
+    } else {
+      res.status(400).json({ error: "Invalid Password" });
+    }
+  } else {
+    res.status(401).json({ error: "User does not exist" });
+  }
+};
+
 module.exports = {
   insertUser,
   verifyEmail,
+  userLogin,
 };
