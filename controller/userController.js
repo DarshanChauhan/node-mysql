@@ -1,31 +1,33 @@
+const express = require("express");
+const jwt = require("jsonwebtoken");
 const db = require("../models");
 const User = db.user;
 var nodemailer = require("nodemailer");
 const { encrypt, decrypt } = require("../encryption/crypto");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+const dotenv = require("dotenv");
+dotenv.config();
 
 // email sent
-
-var encrptId;
 function sendEmail(email, id, username) {
-  encrptId = encrypt(`${id}`);
+  var encrptId = encrypt(`${id}`);
   var mail = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "noreplyproexelancers123@gmail.com",
-      pass: "rhndojhbjcnuvzis",
+      user: process.env.YOUR_EMAIL_ADDRESS,
+      pass: process.env.YOUR_EMAIL_PASSWORD,
     },
   });
   // console.log(encrptId.iv);
   var mailOptions = {
-    from: "noreplyproexelancers123@gmail.com",
+    from: process.env.YOUR_EMAIL_ADDRESS,
     to: email,
     subject: "Darshan Chauhan",
     html: `<h1>Email Confirmation</h1>
     <h2>Hello ${username}</h2>
     <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
-    <a href='http://localhost:4000/user/verify-email/${encrptId.iv}'> Click Here  😀</a>`,
+    <a href='http://localhost:4000/user/verify-email/${encrptId.encryptedData}'> मुझे टच करो  😀</a>`,
   };
   mail.sendMail(mailOptions, function (error, info) {
     if (error) {
@@ -41,6 +43,7 @@ const insertUser = async (req, res) => {
     // console.log(await User.getAllUser());
     const { username, email, password, emailVerified } = req.body;
     let hashPassword = bcrypt.hashSync(password, saltRounds);
+
     user = await User.create({
       username: username,
       email: email,
@@ -48,10 +51,14 @@ const insertUser = async (req, res) => {
       emailVerified: emailVerified,
     });
     if (user) {
+      let token = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
+        expiresIn: 86400,
+      });
       sendEmail(req.body.email, user.id, user.username);
       res.json({
         message:
           "'Thanks for registering✅ Please confirm your email! 📩 We have sent a link!'",
+        token: token,
       });
     }
   } catch (error) {
@@ -64,8 +71,13 @@ const insertUser = async (req, res) => {
 // email verify
 
 const verifyEmail = async (req, res) => {
-  let respoonse = await decrypt(encrptId);
-  // console.log(respoonse);
+  let respoonse = await decrypt(req.params.encrptId);
+  console.log("*****************************");
+
+  console.log(respoonse);
+
+  console.log("*****************************");
+
   const findUser = await User.findOne({ where: { id: respoonse } });
 
   if (findUser) {
