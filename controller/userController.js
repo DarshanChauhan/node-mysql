@@ -6,8 +6,8 @@ var nodemailer = require("nodemailer");
 const { encrypt, decrypt } = require("../encryption/crypto");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
-const dotenv = require("dotenv");
-dotenv.config();
+// const dotenv = require("dotenv");
+// dotenv.config();
 
 // email sent
 function sendEmail(email, id, username) {
@@ -52,7 +52,7 @@ const insertUser = async (req, res) => {
     });
     if (user) {
       let token = jwt.sign({ id: user.id }, process.env.SECRET_KEY, {
-        expiresIn: 86400,
+        expiresIn: process.env.EXPIRE_TOKEN_TIME,
       });
       sendEmail(req.body.email, user.id, user.username);
       res.json({
@@ -72,12 +72,6 @@ const insertUser = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
   let respoonse = await decrypt(req.params.encrptId);
-  console.log("*****************************");
-
-  console.log(respoonse);
-
-  console.log("*****************************");
-
   const findUser = await User.findOne({ where: { id: respoonse } });
 
   if (findUser) {

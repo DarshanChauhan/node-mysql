@@ -3,7 +3,7 @@ const { Sequelize, DataTypes } = require("sequelize");
 // DB Connection
 
 const sequelize = new Sequelize("nodemail", "root", "", {
-  host: "localhost",
+  host: process.env.DB_HOST,
   dialect: "mysql",
   logging: false,
   pool: { max: 5, min: 0, idle: 10000 },
